@@ -17,9 +17,9 @@ public class CategoryRepository : ICategoryRepository
 		return _db.Categories.OrderBy(c => c.Name).ToList();
 	}
 
-	public Category GetCategory(int id)
+	public Category? GetCategory(int id)
 	{
-		return _db.Categories.FirstOrDefault(c => c.Id == id) ?? throw new InvalidOperationException($"Category: {id}, not found.");
+		return _db.Categories.FirstOrDefault(c => c.Id == id);
 	}
 
 	public bool CategoryExists(int id)
@@ -34,7 +34,7 @@ public class CategoryRepository : ICategoryRepository
 
 	public bool CreateCategory(Category category)
 	{
-		category.CreationDate = DateTime.Now;
+		category.CreationDate = DateTime.UtcNow;
 		_db.Categories.Add(category);
 		return Save();
 	}
@@ -47,7 +47,7 @@ public class CategoryRepository : ICategoryRepository
 
 	public bool UpdateCategory(Category category)
 	{
-		category.CreationDate = DateTime.Now;
+		//category.CreationDate = DateTime.UtcNow;
 		_db.Categories.Update(category);
 		return Save();
 	}

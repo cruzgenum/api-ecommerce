@@ -3,10 +3,10 @@ using ApiEcommerce.Api.Models;
 
 namespace ApiEcommerce.Api.Repository.IRepository;
 
-interface ICategoryRepository
+public interface ICategoryRepository
 {
 	ICollection<Category> GetCategories();
-	Category GetCategory(int id);
+	Category? GetCategory(int id);
 	bool CategoryExists(int id);
 	bool CategoryExists(string name);
 

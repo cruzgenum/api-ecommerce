@@ -13,7 +13,9 @@ learning
 ## 🛠️ Stack
 
 <!-- Describe the technologies used by the project here -->
-- .NET 9 (ASP.NET Core)
+- .NET 9 (ASP.NET Core Web API, controllers)
+- Entity Framework Core 9 (SQL Server provider, code-first migrations)
+- AutoMapper 14 (entity ↔ DTO mapping)
 - SQL Server 2022 (Developer edition)
 - Dev Containers (Docker Compose)
 
@@ -25,11 +27,37 @@ api-ecommerce/
 │   ├── devcontainer.json
 │   ├── docker-compose.yml
 │   └── .env.example
+├── src/
+│   └── ApiEcommerce.Api/
+│       ├── Controllers/         # API controllers (CategoriesController)
+│       ├── Data/                # ApplicationDbContext
+│       ├── Mapping/             # AutoMapper profiles
+│       ├── Migrations/          # EF Core migrations
+│       ├── Models/              # Entities (Category)
+│       │   └── Dtos/            # Request/response DTOs
+│       ├── Repository/          # Repository implementations
+│       │   └── IRepository/     # Repository interfaces
+│       ├── Program.cs           # DI registration and pipeline
+│       └── ApiEcommerce.Api.http
+├── ApiEcommerce.sln
 ├── CLAUDE.md
 ├── README.md
 ├── .editorconfig
 └── .gitignore
 ```
+
+## ▶️ Running
+
+Run these inside the dev container, from `src/ApiEcommerce.Api`:
+
+```bash
+dotnet ef migrations add <Name>   # only generates migration files
+dotnet ef database update         # applies migrations to the DB
+dotnet run --launch-profile http  # http://localhost:5117 (forwarded to the host by VS Code)
+```
+
+- `appsettings.json` has an empty `DefaultConnection`; the real value comes from the container env var, so `dotnet ef` / `dotnet run` must run inside the container.
+- There is no route at `/` and no Swagger UI; OpenAPI JSON is at `/openapi/v1.json`.
 
 ## 🐳 Docker
 
@@ -66,7 +94,8 @@ docker compose -f .devcontainer/docker-compose.yml down
 
 ## 🔧 Conventions
 
-- File names: kebab-case
+- File names: kebab-case, except C# files, which use PascalCase matching the type name
+- Interfaces exposed through public constructors (e.g. repositories) must be declared `public`
 - Indentation: tabs of 4 (see `.editorconfig`; YAML and Markdown use 2 spaces)
 - Commits: in English, descriptive
 - Branches: `feature/name`, `fix/name`, `hotfix/name`, `docs/name`, `refactor/name`, `chore/name`, `style/name`
@@ -74,11 +103,15 @@ docker compose -f .devcontainer/docker-compose.yml down
 ## ⚠️ Important notes
 
 <!-- Add things Claude should know here: test credentials, limitations, etc. -->
-- `.gitignore` starts empty: update it to match the project's stack
 - Never commit `.devcontainer/.env` (ignored by the `.env` rule); add new variables to `.devcontainer/.env.example`
+- AutoMapper 14.0.0 triggers NU1903 (GHSA-rvv3-g6hj-g44x, DoS on deeply nested graphs; fixed in 15.1.1+, which requires a license key). Pending decision: keep, upgrade, or replace with manual mapping.
 
 ## 📌 Current status
 
 <!-- Update this when you pause work -->
-- Last task: Dev Container setup (.NET 9 + SQL Server 2022) with DB healthcheck and env-based credentials
-- Next step: scaffold the ASP.NET Core Web API project
+- Last task: Categories CRUD at `/api/categories` (GET all, GET `{id:int}`, POST, PATCH `{id:int}`, DELETE `{id:int}`), tested with curl
+- Next steps:
+  - Commit the Categories CRUD work
+  - Decide on AutoMapper (see note above)
+  - Minor cleanups in `CategoriesController`: duplicate `Name` assignment in Update, redundant `CategoryExists` check in Delete, typos in error messages, missing `204NoContent` response types
+  - Consider `PUT` instead of `PATCH` for the full-replace update
